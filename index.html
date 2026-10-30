@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tap 1 to 16</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #hud {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #timer {
+      font-size: 2rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    #target {
+      font-size: 1rem;
+      color: #888;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      width: 90vw;
+      max-width: 360px;
+      aspect-ratio: 1;
+    }
+    button.tile {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    button.tile:active {
+      background: #333;
+    }
+    button.tile.done {
+      background: #16a34a;
+      opacity: 0.2;
+      pointer-events: none;
+    }
+    #reset {
+      margin-top: 25px;
+      padding: 10px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="hud">
+    <div id="timer">0.000s</div>
+    <div id="target">Siguiente: 1</div>
+  </div>
+
+  <div id="grid"></div>
+
+  <button id="reset" onclick="resetGame()">Reiniciar</button>
+
+  <script>
+    const LAYOUT = [
+       7,  15, 6, 10,
+       3,  2, 4, 11,
+       12,  8, 1, 5,
+       9,  14, 16, 13
+    ];
+
+    let currentTarget = 1;
+    let startTime = null;
+    let timerInterval = null;
+    const grid = document.getElementById('grid');
+    const timerDisplay = document.getElementById('timer');
+    const targetDisplay = document.getElementById('target');
+
+    function buildGrid() {
+      grid.innerHTML = '';
+      LAYOUT.forEach(num => {
+        const btn = document.createElement('button');
+        btn.className = 'tile';
+        btn.textContent = num;
+        btn.dataset.num = num;
+        btn.addEventListener('pointerdown', (e) => handleTap(e, num));
+        grid.appendChild(btn);
+      });
+    }
+
+    function handleTap(e, num) {
+      e.preventDefault();
+      if (num === currentTarget) {
+        if (currentTarget === 1) {
+          startTime = performance.now();
+          timerInterval = setInterval(updateTimer, 16);
+        }
+        e.target.classList.add('done');
+        currentTarget++;
+        if (currentTarget > 16) {
+          clearInterval(timerInterval);
+          targetDisplay.textContent = '¡Completado!';
+        } else {
+          targetDisplay.textContent = 'Siguiente: ' + currentTarget;
+        }
+      }
+    }
+
+    function updateTimer() {
+      const elapsed = (performance.now() - startTime) / 1000;
+      timerDisplay.textContent = elapsed.toFixed(3) + 's';
+    }
+
+    function resetGame() {
+      clearInterval(timerInterval);
+      currentTarget = 1;
+      startTime = null;
+      timerDisplay.textContent = '0.000s';
+      targetDisplay.textContent = 'Siguiente: 1';
+      buildGrid();
+    }
+
+    buildGrid();
+  </script>
+</body>
+</html>
